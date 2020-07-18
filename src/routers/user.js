@@ -1,7 +1,8 @@
 const express = require("express");
+const fs = require("fs");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
-const fruitsList = require("../fruits");
+const fruitsList = require("../fruitsList/fruits.json");
 
 const router = express.Router();
 
@@ -67,6 +68,32 @@ router.post("/checkAuth/logoutAll", auth, async (req, res) => {
 // Get Fruits List from DB
 router.get("/getFruits", (req, res) => {
   res.json(fruitsList);
+});
+
+// Change Fruit Nutritions element with req body
+// req must incloud an ID Param with fruit ID
+router.post("/fruit/:id/updateNutrition", async (req, res) => {
+  try {
+    const indexFruitToGetChanged = fruitsList.fruitsList.indexOf(
+      fruitsList.fruitsList.find((fruit) => fruit.id == req.params.id)
+    );
+    if (indexFruitToGetChanged !== -1) {
+      fruitsList.fruitsList[indexFruitToGetChanged] = req.body;
+    }
+    res.send(fruitsList.fruitsList[indexFruitToGetChanged].nutritions);
+    // Over-writing the original file so changes are permanent
+    // TODO: Relocate the fruits list file to MongoDB
+    const fruitsListJSON = JSON.stringify(fruitsList);
+    fs.writeFile("./src/fruitsList/fruits.json", fruitsListJSON, (err) => {
+      if (err) {
+        console.log("Error writing file", err);
+      } else {
+        console.log("Success writing file", err);
+      }
+    });
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
 module.exports = router;
