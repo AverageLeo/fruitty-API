@@ -80,15 +80,17 @@ router.post("/fruit/:id/updateNutrition", async (req, res) => {
     if (indexFruitToGetChanged !== -1) {
       fruitsList.fruitsList[indexFruitToGetChanged] = req.body;
     }
-    res.send(fruitsList.fruitsList[indexFruitToGetChanged].nutritions);
+    // res.send(fruitsList.fruitsList[indexFruitToGetChanged].nutritions);
+
+    res.status(200).json("updated");
     // Over-writing the original file so changes are permanent
     // TODO: Relocate the fruits list file to MongoDB
-    const fruitsListJSON = JSON.stringify(fruitsList);
+    const fruitsListJSON = JSON.stringify(fruitsList, null, 2);
     fs.writeFile("./src/fruitsList/fruits.json", fruitsListJSON, (err) => {
       if (err) {
         console.log("Error writing file", err);
       } else {
-        console.log("Success writing file", err);
+        console.log("Success writing file", req.body);
       }
     });
   } catch (error) {

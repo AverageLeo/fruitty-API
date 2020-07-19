@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const fruitsList = require("./fruitsList/fruits.json");
 const port = process.env.PORT;
 const userRouter = require("./routers/user");
 require("./db/db");
