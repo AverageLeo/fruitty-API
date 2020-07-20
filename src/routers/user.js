@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const User = require("../models/User");
+const Fruits = require("../models/Fruits");
 const auth = require("../middleware/auth");
 const fruitsList = require("../fruitsList/fruits.json");
 
@@ -66,35 +67,64 @@ router.post("/checkAuth/logoutAll", auth, async (req, res) => {
 });
 
 // Get Fruits List from DB
-router.get("/getFruits", (req, res) => {
-  res.json(fruitsList);
+router.get("/getFruits", async (req, res) => {
+  const MongoFruits = await Fruits.find({});
+
+  console.log({ fruitsList: MongoFruits });
+
+  res.json({ fruitsList: MongoFruits });
 });
 
 // Change Fruit Nutritions element with req body
 // req must incloud an ID Param with fruit ID
 router.post("/fruit/:id/updateNutrition", async (req, res) => {
   try {
-    const indexFruitToGetChanged = fruitsList.fruitsList.indexOf(
-      fruitsList.fruitsList.find((fruit) => fruit.id == req.params.id)
+    const MongoFruit = await Fruits.replaceOne(
+      { _id: req.params.id },
+      req.body
     );
-    if (indexFruitToGetChanged !== -1) {
-      fruitsList.fruitsList[indexFruitToGetChanged] = req.body;
-    }
-    // res.send(fruitsList.fruitsList[indexFruitToGetChanged].nutritions);
-
-    res.status(200).json("updated");
-    // Over-writing the original file so changes are permanent
-    // TODO: Relocate the fruits list file to MongoDB
-    const fruitsListJSON = JSON.stringify(fruitsList, null, 2);
-    fs.writeFile("./src/fruitsList/fruits.json", fruitsListJSON, (err) => {
-      if (err) {
-        console.log("Error writing file", err);
-      } else {
-        console.log("Success writing file", req.body);
-      }
-    });
+    res.json(MongoFruit);
   } catch (error) {
-    res.status(500).send(error);
+    console.log("error", error);
+  }
+  //     fruitsList.fruitsList[indexFruitToGetChanged] = req.body;
+  //   }
+  // try {
+  //   const indexFruitToGetChanged = fruitsList.fruitsList.indexOf(
+  //     fruitsList.fruitsList.find((fruit) => fruit.id == req.params.id)
+  //   );
+  //   if (indexFruitToGetChanged !== -1) {
+  //     fruitsList.fruitsList[indexFruitToGetChanged] = req.body;
+  //   }
+  //   // res.send(fruitsList.fruitsList[indexFruitToGetChanged].nutritions);
+
+  //   // Over-writing the original file so changes are permanent
+  //   const fruitsListJSON = JSON.stringify(fruitsList, null, 2);
+  //   fs.writeFile("./src/fruitsList/fruits.json", fruitsListJSON, (err) => {
+  //     if (err) {
+  //       console.log("Error writing file", err);
+  //       res.status(500).send("oops, something went wrong");
+  //     } else {
+  //       console.log("Success writing file", req.body);
+  //       res.status(200).json("updated");
+  //     }
+  //   });
+  // } catch (error) {
+  //   res.status(500).send(error);
+  // }
+});
+
+// Add new fruit
+
+router.post("/newFruit", async (req, res) => {
+  try {
+    const fruit = new Fruits(req.body);
+    await fruit.save();
+    console.log(fruit);
+    res.status(201).send({ fruit });
+  } catch (error) {
+    console.log("failed");
+    res.status(400).send(error);
   }
 });
 
