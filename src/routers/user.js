@@ -31,7 +31,6 @@ router.post("/login", async (req, res) => {
     }
     const token = await user.generateAuthToken();
     res.send({ email: user.email, name: user.name, token });
-    console.log("user:", user);
   } catch (error) {
     res.status(400).send({ error: error.message });
   }
@@ -69,53 +68,25 @@ router.post("/checkAuth/logoutAll", auth, async (req, res) => {
 // Get Fruits List from DB
 router.get("/getFruits", async (req, res) => {
   const MongoFruits = await Fruits.find({});
-
-  console.log({ fruitsList: MongoFruits });
-
   res.json({ fruitsList: MongoFruits });
 });
 
 // Change Fruit Nutritions element with req body
 // req must incloud an ID Param with fruit ID
 router.post("/fruit/:id/updateNutrition", async (req, res) => {
+  const updatedFruit = new Fruits(req.body);
   try {
     const MongoFruit = await Fruits.replaceOne(
       { _id: req.params.id },
-      req.body
+      updatedFruit
     );
     res.json(MongoFruit);
   } catch (error) {
     console.log("error", error);
   }
-  //     fruitsList.fruitsList[indexFruitToGetChanged] = req.body;
-  //   }
-  // try {
-  //   const indexFruitToGetChanged = fruitsList.fruitsList.indexOf(
-  //     fruitsList.fruitsList.find((fruit) => fruit.id == req.params.id)
-  //   );
-  //   if (indexFruitToGetChanged !== -1) {
-  //     fruitsList.fruitsList[indexFruitToGetChanged] = req.body;
-  //   }
-  //   // res.send(fruitsList.fruitsList[indexFruitToGetChanged].nutritions);
-
-  //   // Over-writing the original file so changes are permanent
-  //   const fruitsListJSON = JSON.stringify(fruitsList, null, 2);
-  //   fs.writeFile("./src/fruitsList/fruits.json", fruitsListJSON, (err) => {
-  //     if (err) {
-  //       console.log("Error writing file", err);
-  //       res.status(500).send("oops, something went wrong");
-  //     } else {
-  //       console.log("Success writing file", req.body);
-  //       res.status(200).json("updated");
-  //     }
-  //   });
-  // } catch (error) {
-  //   res.status(500).send(error);
-  // }
 });
 
-// Add new fruit
-
+// Add New Fruit
 router.post("/newFruit", async (req, res) => {
   try {
     const fruit = new Fruits(req.body);
